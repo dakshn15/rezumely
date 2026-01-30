@@ -9,6 +9,16 @@ interface TemplateProps {
   settings: TemplateSettings;
 }
 
+// Utility to convert hex color to rgba string (used for print borders with alpha)
+const hexToRgba = (hex: string, alpha = 1) => {
+  const clean = hex.replace('#', '');
+  const bigint = parseInt(clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const getFontSize = (size: string) => {
   switch (size) {
     case 'small': return { base: '11px', name: '22px', title: '13px', section: '11px', small: '10px' };
@@ -33,16 +43,18 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
 
   return (
     <div 
-      className="bg-white shadow-xl print:shadow-none" 
+      className="resume-template bg-white print:shadow-none" 
       style={{ 
         fontFamily: settings.fontFamily,
         fontSize: fonts.base,
         width: '210mm',
-        minHeight: '297mm',
+        minHeight: '297mm', // ensure at least one page height but allow content to grow
+        display: 'block',
         lineHeight: 1.5,
+        boxSizing: 'border-box',
       }}
     >
-      <div className="flex min-h-[297mm]">
+      <div className="flex" style={{ minHeight: '297mm' }}>
         {/* Sidebar */}
         <div 
           className="w-[72mm] text-white p-6 print:!bg-[var(--primary-color)]" 
@@ -167,8 +179,8 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
           )}
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-7">
+        {/* Main Content: column layout so content area expands when empty */}
+        <div className="flex-1 p-7 flex flex-col" style={{ height: '100%' }}>
           {/* Header */}
           <div className="mb-6">
             <h1 className="font-bold mb-1" style={{ fontSize: fonts.name, color: settings.primaryColor }}>
@@ -179,125 +191,124 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
             </h2>
           </div>
 
-          {/* Summary */}
-          {summary && (
-            <div className="mb-6">
-              <h3 
-                className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
-                style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: `${settings.primaryColor}30` }}
-              >
-                Professional Summary
-              </h3>
-              <p className="text-gray-700 leading-relaxed">{summary}</p>
-            </div>
-          )}
-
-          {/* Experience */}
-          {experience.length > 0 && (
-            <div className="mb-6">
-              <h3 
-                className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
-                style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: `${settings.primaryColor}30` }}
-              >
-                Experience
-              </h3>
-              <div className="space-y-4">
-                {experience.map((exp) => (
-                  <div key={exp.id}>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{exp.position}</h4>
-                        <div className="font-medium" style={{ fontSize: fonts.small, color: settings.accentColor }}>{exp.company}</div>
-                      </div>
-                      <div className="text-gray-500 shrink-0 ml-4" style={{ fontSize: fonts.small }}>
-                        {formatDateRange(exp.startDate, exp.endDate, exp.current)}
-                      </div>
-                    </div>
-                    {exp.description && <p className="text-gray-600 mt-1" style={{ fontSize: fonts.small }}>{exp.description}</p>}
-                    {exp.achievements.length > 0 && (
-                      <ul className="mt-2 space-y-1">
-                        {exp.achievements.map((achievement, i) => (
-                          <li 
-                            key={i} 
-                            className="text-gray-700 pl-4 relative before:content-['•'] before:absolute before:left-0"
-                            style={{ fontSize: fonts.small, '--tw-before-color': settings.accentColor } as any}
-                          >
-                            {achievement}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
+          {/* Flexible content area fills the rest of the page */}
+          <div className="flex-1">
+            {/* Summary */}
+            {summary && (
+              <div className="mb-6">
+                <h3 
+                  className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
+                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: hexToRgba(settings.primaryColor, 0.2) }}
+                >
+                  Professional Summary
+                </h3>
+                <p className="text-gray-700 leading-relaxed">{summary}</p>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Education */}
-          {education.length > 0 && (
-            <div className="mb-6">
-              <h3 
-                className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
-                style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: `${settings.primaryColor}30` }}
-              >
-                Education
-              </h3>
-              <div className="space-y-3">
-                {education.map((edu) => (
-                  <div key={edu.id}>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{edu.degree} in {edu.field}</h4>
-                        <div className="font-medium" style={{ fontSize: fonts.small, color: settings.accentColor }}>{edu.institution}</div>
-                      </div>
-                      <div className="text-right shrink-0 ml-4">
-                        <div className="text-gray-500" style={{ fontSize: fonts.small }}>
-                          {formatDateRange(edu.startDate, edu.endDate, false)}
+            {/* Experience */}
+            {experience.length > 0 && (
+              <div className="mb-6">
+                <h3 
+                  className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
+                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: hexToRgba(settings.primaryColor, 0.2) }}
+                >
+                  Experience
+                </h3>
+                <div className="space-y-4">
+                  {experience.map((exp) => (
+                    <div key={exp.id}>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{exp.position}</h4>
+                          <div className="font-medium" style={{ fontSize: fonts.small, color: settings.accentColor }}>{exp.company}</div>
                         </div>
-                        {edu.gpa && <div className="text-gray-500" style={{ fontSize: fonts.small }}>GPA: {edu.gpa}</div>}
+                        <div className="text-gray-500 shrink-0 ml-4" style={{ fontSize: fonts.small }}>
+                          {formatDateRange(exp.startDate, exp.endDate, exp.current)}
+                        </div>
                       </div>
+                      {exp.description && <p className="text-gray-600 mt-1" style={{ fontSize: fonts.small }}>{exp.description}</p>}
+                      {exp.achievements.length > 0 && (
+                        <ul style={{ paddingLeft: '1rem', marginTop: '0.5rem' }}>
+                          {exp.achievements.map((achievement, i) => (
+                            <li key={i} style={{ fontSize: fonts.small, marginBottom: '0.25rem', color: '#222' }}>
+                              {achievement}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Projects */}
-          {projects.length > 0 && (
-            <div>
-              <h3 
-                className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
-                style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: `${settings.primaryColor}30` }}
-              >
-                Projects
-              </h3>
-              <div className="space-y-3">
-                {projects.map((project) => (
-                  <div key={project.id}>
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-semibold text-gray-900">
-                        {project.url ? (
-                          <LinkWrapper href={project.url} className="flex items-center gap-1">
-                            {project.name}
-                            <ExternalLink className="h-3 w-3" style={{ color: settings.accentColor }} />
-                          </LinkWrapper>
-                        ) : project.name}
-                      </h4>
-                    </div>
-                    <p className="text-gray-600 mt-0.5" style={{ fontSize: fonts.small }}>{project.description}</p>
-                    {project.technologies.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-1.5">
-                        {project.technologies.map((tech, i) => (
-                          <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded" style={{ fontSize: '10px' }}>{tech}</span>
-                        ))}
+            {/* Education */}
+            {education.length > 0 && (
+              <div className="mb-6">
+                <h3 
+                  className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
+                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: hexToRgba(settings.primaryColor, 0.2) }}
+                >
+                  Education
+                </h3>
+                <div className="space-y-3">
+                  {education.map((edu) => (
+                    <div key={edu.id}>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{edu.degree} in {edu.field}</h4>
+                          <div className="font-medium" style={{ fontSize: fonts.small, color: settings.accentColor }}>{edu.institution}</div>
+                        </div>
+                        <div className="text-right shrink-0 ml-4">
+                          <div className="text-gray-500" style={{ fontSize: fonts.small }}>
+                            {formatDateRange(edu.startDate, edu.endDate, false)}
+                          </div>
+                          {edu.gpa && <div className="text-gray-500" style={{ fontSize: fonts.small }}>GPA: {edu.gpa}</div>}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Projects */}
+            {projects.length > 0 && (
+              <div>
+                <h3 
+                  className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
+                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: hexToRgba(settings.primaryColor, 0.2) }}
+                >
+                  Projects
+                </h3>
+                <div className="space-y-3">
+                  {projects.map((project) => (
+                    <div key={project.id}>
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-semibold text-gray-900">
+                          {project.url ? (
+                            <LinkWrapper href={project.url} className="flex items-center gap-1">
+                              {project.name}
+                              <ExternalLink className="h-3 w-3" style={{ color: settings.accentColor }} />
+                            </LinkWrapper>
+                          ) : project.name}
+                        </h4>
+                      </div>
+                      <p className="text-gray-600 mt-0.5" style={{ fontSize: fonts.small, color: '#333' }}>{project.description}</p>
+                      {project.technologies.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-1.5">
+                          {project.technologies.map((tech, i) => (
+                            <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded" style={{ fontSize: '10px' }}>{tech}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

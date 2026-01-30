@@ -10,7 +10,10 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume }) => {
   const { personalInfo, summary, experience, education, skills, projects, additional } = resume;
 
   return (
-    <div className="resume-paper p-8 font-serif text-[11px] leading-relaxed print:shadow-none" style={{ fontFamily: '"Source Serif 4", Georgia, serif' }}>
+    <div
+  className="resume-paper w-full box-border p-8 font-serif text-[11px] leading-relaxed print:shadow-none"
+  style={{ fontFamily: '"Source Serif 4", Georgia, serif' }}
+>
       {/* Header */}
       <div className="text-center border-b-2 border-black pb-4 mb-4">
         <h1 className="text-2xl font-bold text-black tracking-wide mb-1">{personalInfo.name || 'Your Name'}</h1>
@@ -44,7 +47,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume }) => {
           <div className="space-y-4">
             {experience.map((exp) => (
               <div key={exp.id}>
-                <div className="flex justify-between items-baseline">
+                <div className="flex justify-between items-baseline gap-2 flex-wrap">
                   <h4 className="font-bold text-black">{exp.position}</h4>
                   <span className="text-[10px] text-gray-600 italic">
                     {formatDateRange(exp.startDate, exp.endDate, exp.current)}
@@ -74,7 +77,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume }) => {
           <div className="space-y-3">
             {education.map((edu) => (
               <div key={edu.id}>
-                <div className="flex justify-between items-baseline">
+                <div className="flex justify-between items-baseline gap-2 flex-wrap">
                   <h4 className="font-bold text-black">{edu.degree} in {edu.field}</h4>
                   <span className="text-[10px] text-gray-600 italic">
                     {formatDateRange(edu.startDate, edu.endDate, false)}

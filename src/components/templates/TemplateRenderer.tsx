@@ -38,6 +38,9 @@ export const TemplateRenderer: React.FC<TemplateRendererProps> = ({ resume, temp
 
   const Template = templates[templateId] || ModernTemplate;
 
+  // Return the selected template directly; the outer preview container
+  // (Editor previewRef) already sets the paper width/scale/shadow, so we
+  // should avoid adding another outer wrapper that can interfere with sizing.
   return <Template resume={resume} settings={mergedSettings} />;
 };
 

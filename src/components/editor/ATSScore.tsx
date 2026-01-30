@@ -35,7 +35,7 @@ export const ATSScore: React.FC = () => {
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border p-4 shadow-soft">
+    <div className="bg-card rounded-xl border border-border p-3 shadow-soft">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between"
@@ -81,8 +81,8 @@ export const ATSScore: React.FC = () => {
                 >
                   <div className="mt-0.5">{iconMap[rec.category]}</div>
                   <div>
-                    <span className="text-foreground">{rec.message}</span>
-                    <span className="text-muted-foreground text-xs ml-2">({rec.section})</span>
+                    <span className="text-foreground inline-block">{rec.message}</span>
+                    <span className="text-muted-foreground text-xs ml-2 inline-block">({rec.section})</span>
                   </div>
                 </div>
               ))}

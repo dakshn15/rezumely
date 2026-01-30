@@ -15,160 +15,149 @@ export const exportToPDF = async (
   onProgress?: (progress: ExportProgress) => void
 ): Promise<void> => {
   try {
-    onProgress?.({ status: 'preparing', progress: 10, message: 'Preparing document...' });
+    onProgress?.({ status: 'preparing', progress: 5, message: 'Preparing document...' });
 
-    const paperSizes = {
+    const paperSizes: Record<string, { width: number; height: number }> = {
       a4: { width: 210, height: 297 },
       letter: { width: 215.9, height: 279.4 },
     };
 
-    const size = paperSizes[settings.paperSize];
-    const scale = settings.quality === 'high' ? 3 : 2;
-    const mmToPx = 3.7795275591; // 1mm = 3.78px at 96 DPI
+    const size = paperSizes[settings.paperSize] || paperSizes.a4;
 
-    onProgress?.({ status: 'rendering', progress: 30, message: 'Rendering content...' });
+    const mmToPx = 96 / 25.4;
 
-    // Clone element to avoid modifying the original
+    // Cleaner scale — avoid devicePixelRatio stacking
+    const scale = settings.quality === 'high' ? 2.5 : 1.5;
+
+    onProgress?.({ status: 'rendering', progress: 20, message: 'Cloning content...' });
+
     const clonedElement = element.cloneNode(true) as HTMLElement;
-    
-    // Reset any transform scale on the cloned element
     clonedElement.style.transform = 'none';
-    clonedElement.style.width = `${size.width}mm`;
-    clonedElement.style.minHeight = `${size.height}mm`;
     clonedElement.style.position = 'absolute';
     clonedElement.style.left = '-9999px';
     clonedElement.style.top = '0';
-    clonedElement.style.background = 'white';
     clonedElement.style.margin = '0';
     clonedElement.style.padding = '0';
-    
-    // Apply grayscale if black and white mode
+    clonedElement.style.background = '#ffffff';
+    clonedElement.style.width = `${Math.round(size.width * mmToPx)}px`;
+
     if (settings.colorMode === 'bw') {
       clonedElement.style.filter = 'grayscale(100%)';
     }
 
-    // Remove photo if setting is disabled
     if (!settings.includePhoto) {
-      const photos = clonedElement.querySelectorAll('[data-photo]');
-      photos.forEach((photo) => photo.remove());
+      clonedElement.querySelectorAll('[data-photo]').forEach((p) => p.remove());
     }
 
-    // Fix any links to be visible
-    const links = clonedElement.querySelectorAll('a');
-    links.forEach((link) => {
-      link.style.textDecoration = 'none';
+    clonedElement.querySelectorAll('a').forEach((l) => {
+      (l as HTMLElement).style.textDecoration = 'none';
+      (l as HTMLElement).style.color = 'inherit';
     });
 
     document.body.appendChild(clonedElement);
-
-    // Wait for fonts to load
     await document.fonts.ready;
-    
-    // Small delay to ensure rendering is complete
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((r) => setTimeout(r, 120));
 
-    onProgress?.({ status: 'rendering', progress: 50, message: 'Capturing pages...' });
+    onProgress?.({ status: 'rendering', progress: 40, message: 'Preparing render frame...' });
 
-    const canvas = await html2canvas(clonedElement, {
-      scale,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      width: size.width * mmToPx,
-      height: clonedElement.scrollHeight,
-      windowWidth: size.width * mmToPx,
-      windowHeight: size.height * mmToPx,
-      onclone: (clonedDoc) => {
-        // Ensure all styles are properly applied in the cloned document
-        const style = clonedDoc.createElement('style');
-        style.textContent = `
-          * { box-sizing: border-box; }
-          @page { margin: 0; size: ${size.width}mm ${size.height}mm; }
-        `;
-        clonedDoc.head.appendChild(style);
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.left = '-9999px';
+    iframe.style.width = `${Math.round(size.width * mmToPx)}px`;
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const idoc = iframe.contentDocument as Document;
+    const iwin = iframe.contentWindow as Window;
+
+    Array.from(document.head.childNodes).forEach((node) => {
+      if (
+        node.nodeName === 'STYLE' ||
+        (node.nodeName === 'LINK' && (node as HTMLLinkElement).rel === 'stylesheet')
+      ) {
+        idoc.head.appendChild(node.cloneNode(true));
       }
     });
 
-    document.body.removeChild(clonedElement);
+    const style = idoc.createElement('style');
+    style.textContent = `
+      html, body { margin: 0; padding: 0; background: #fff; }
+      * { box-sizing: border-box; }
+      img { max-width: 100%; height: auto; }
+      @page { margin: 0; size: ${size.width}mm ${size.height}mm; }
+      * { -webkit-print-color-adjust: exact; color-adjust: exact; }
+    `;
+    idoc.head.appendChild(style);
+
+    idoc.body.appendChild(clonedElement);
+
+    try {
+      await (iwin as any).document.fonts.ready;
+    } catch {}
+
+    await new Promise((r) => setTimeout(r, 200));
+
+    onProgress?.({ status: 'rendering', progress: 55, message: 'Rendering to canvas...' });
+
+    const renderTarget = idoc.body.firstElementChild as HTMLElement;
+
+    const canvas = await html2canvas(renderTarget, {
+      scale,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      windowWidth: Math.round(size.width * mmToPx),
+      windowHeight: renderTarget.getBoundingClientRect().height, // more accurate than scrollHeight
+      scrollX: 0,
+      scrollY: 0,
+    });
+
+    document.body.removeChild(iframe);
 
     onProgress?.({ status: 'generating', progress: 70, message: 'Generating PDF...' });
 
-    const imgWidth = size.width;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pageHeight = size.height;
+    const pagePxHeight = Math.round(size.height * mmToPx * scale);
 
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: settings.paperSize,
-      compress: true,
-    });
+    const fullPages = Math.floor(canvas.height / pagePxHeight);
+    const remainingPx = canvas.height - fullPages * pagePxHeight;
 
-    // Add metadata
-    pdf.setProperties({
-      title: filename.replace('.pdf', ''),
-      creator: 'Resume Builder Pro',
-      subject: 'Professional Resume',
-    });
+    // Ignore tiny overflow that causes blank page
+    const totalPages = remainingPx > 10 ? fullPages + 1 : fullPages;
 
-    const imgData = canvas.toDataURL('image/png', 1.0);
-    
-    let heightLeft = imgHeight;
-    let position = 0;
-    let pageNum = 0;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: settings.paperSize });
 
-    // Add pages
-    while (heightLeft > 0) {
-      if (pageNum > 0) {
-        pdf.addPage();
-      }
-      
-      // Calculate the portion of the image to show on this page
-      const sourceY = pageNum * (pageHeight / imgHeight) * canvas.height;
-      const sourceHeight = Math.min(
-        (pageHeight / imgHeight) * canvas.height,
-        canvas.height - sourceY
-      );
-      
-      // Create a temporary canvas for this page
+    for (let page = 0; page < totalPages; page++) {
+      const sourceY = page * pagePxHeight;
+      const sourceHeight = Math.min(pagePxHeight, canvas.height - sourceY);
+
       const pageCanvas = document.createElement('canvas');
       pageCanvas.width = canvas.width;
       pageCanvas.height = sourceHeight;
+
       const ctx = pageCanvas.getContext('2d');
-      
-      if (ctx) {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-        ctx.drawImage(
-          canvas,
-          0, sourceY, canvas.width, sourceHeight,
-          0, 0, pageCanvas.width, sourceHeight
-        );
-        
-        const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
-        const pageImgHeight = (sourceHeight / canvas.width) * imgWidth;
-        
-        pdf.addImage(
-          pageImgData,
-          'PNG',
-          0,
-          0,
-          imgWidth,
-          pageImgHeight,
-          undefined,
-          'FAST'
-        );
-      }
-      
-      heightLeft -= pageHeight;
-      pageNum++;
+      if (!ctx) continue;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+      ctx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, pageCanvas.width, sourceHeight);
+
+      const imgData = pageCanvas.toDataURL('image/png');
+
+      if (page > 0) pdf.addPage();
+
+      const imgWidthMm = size.width;
+      const imgHeightMm = (pageCanvas.height / pageCanvas.width) * imgWidthMm;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidthMm, imgHeightMm, undefined, 'FAST');
+
+      const progress = 70 + Math.round(((page + 1) / totalPages) * 25);
+      onProgress?.({ status: 'generating', progress, message: `Page ${page + 1} of ${totalPages}` });
     }
 
-    onProgress?.({ status: 'complete', progress: 100, message: 'Download ready!' });
-
     pdf.save(filename);
+
+    onProgress?.({ status: 'complete', progress: 100, message: 'PDF ready!' });
   } catch (error) {
-    onProgress?.({ status: 'error', progress: 0, message: 'Export failed. Please try again.' });
+    onProgress?.({ status: 'error', progress: 0, message: 'Export failed' });
     throw error;
   }
 };
