@@ -86,7 +86,7 @@ export const exportToPDF = async (
     const style = idoc.createElement('style');
     style.textContent = `
       html, body { margin: 0; padding: 0; background: #fff; height: auto; }
-      * { box-sizing: border-box; }
+      * { box-sizing: border-box; letter-spacing: normal !important; }
       img { max-width: 100%; height: auto; }
       @page { margin: 0; size: ${size.width}mm ${size.height}mm; }
       * { -webkit-print-color-adjust: exact; color-adjust: exact; }
@@ -108,7 +108,7 @@ export const exportToPDF = async (
     // Give fonts and resources some time to load
     try {
       await (iwin as any).document.fonts.ready;
-    } catch {}
+    } catch { }
     await new Promise((r) => setTimeout(r, 250));
 
     onProgress?.({ status: 'rendering', progress: 45, message: 'Rendering content...' });
@@ -153,7 +153,7 @@ export const exportToPDF = async (
         try {
           const internal = (worker as any).get || (worker as any).outputPdf;
           // no-op; keep for compatibility
-        } catch {}
+        } catch { }
 
         worker.save().then(() => {
           onProgress?.({ status: 'complete', progress: 100, message: 'PDF ready!' });
@@ -169,7 +169,7 @@ export const exportToPDF = async (
     // cleanup
     try {
       document.body.removeChild(iframe);
-    } catch {}
+    } catch { }
 
   } catch (error) {
     onProgress?.({ status: 'error', progress: 0, message: 'Export failed' });

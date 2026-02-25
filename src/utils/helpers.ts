@@ -8,7 +8,7 @@ export const debounce = <T extends (...args: unknown[]) => void>(
   wait: number
 ): ((...args: Parameters<T>) => void) => {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  
+
   return (...args: Parameters<T>) => {
     if (timeoutId) clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func(...args), wait);
@@ -18,14 +18,17 @@ export const debounce = <T extends (...args: unknown[]) => void>(
 export const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
 
 export const calculateCompletionPercentage = (resume: Resume): number => {
+  if (!resume) return 0;
+
   let completed = 0;
   let total = 0;
 
   // Personal Info (required fields)
+  const personalInfo = resume.personalInfo || {} as any;
   const requiredPersonalFields = ['name', 'email', 'phone'] as const;
   requiredPersonalFields.forEach((field) => {
     total++;
-    if (resume.personalInfo[field]) completed++;
+    if (personalInfo[field]) completed++;
   });
 
   // Summary
@@ -34,21 +37,22 @@ export const calculateCompletionPercentage = (resume: Resume): number => {
 
   // Experience
   total++;
-  if (resume.experience.length > 0) completed++;
+  if ((resume.experience || []).length > 0) completed++;
 
   // Education
   total++;
-  if (resume.education.length > 0) completed++;
+  if ((resume.education || []).length > 0) completed++;
 
   // Skills
   total++;
-  const hasSkills = 
-    resume.skills.technical.length > 0 || 
-    resume.skills.languages.length > 0 ||
-    resume.skills.softSkills.length > 0;
+  const skills = resume.skills || { technical: [], languages: [], softSkills: [] };
+  const hasSkills =
+    (skills.technical || []).length > 0 ||
+    (skills.languages || []).length > 0 ||
+    (skills.softSkills || []).length > 0;
   if (hasSkills) completed++;
 
-  return Math.round((completed / total) * 100);
+  return total > 0 ? Math.round((completed / total) * 100) : 0;
 };
 
 export const formatDate = (dateString: string): string => {
@@ -95,20 +99,20 @@ export const exportToJSON = (resume: Resume): string => {
 
 export const exportToText = (resume: Resume): string => {
   const lines: string[] = [];
-  
+
   // Personal Info
   lines.push(resume.personalInfo.name);
   lines.push(resume.personalInfo.title);
   lines.push(`${resume.personalInfo.email} | ${resume.personalInfo.phone} | ${resume.personalInfo.location}`);
   lines.push('');
-  
+
   // Summary
   if (resume.summary) {
     lines.push('SUMMARY');
     lines.push(resume.summary);
     lines.push('');
   }
-  
+
   // Experience
   if (resume.experience.length > 0) {
     lines.push('EXPERIENCE');
@@ -120,7 +124,7 @@ export const exportToText = (resume: Resume): string => {
       lines.push('');
     });
   }
-  
+
   // Education
   if (resume.education.length > 0) {
     lines.push('EDUCATION');
@@ -131,7 +135,7 @@ export const exportToText = (resume: Resume): string => {
       lines.push('');
     });
   }
-  
+
   // Skills
   lines.push('SKILLS');
   if (resume.skills.technical.length > 0) {
@@ -143,25 +147,25 @@ export const exportToText = (resume: Resume): string => {
   if (resume.skills.softSkills.length > 0) {
     lines.push(`Soft Skills: ${resume.skills.softSkills.join(', ')}`);
   }
-  
+
   return lines.join('\n');
 };
 
 export const exportToMarkdown = (resume: Resume): string => {
   const lines: string[] = [];
-  
+
   lines.push(`# ${resume.personalInfo.name}`);
   lines.push(`**${resume.personalInfo.title}**`);
   lines.push('');
   lines.push(`📧 ${resume.personalInfo.email} | 📱 ${resume.personalInfo.phone} | 📍 ${resume.personalInfo.location}`);
   lines.push('');
-  
+
   if (resume.summary) {
     lines.push('## Summary');
     lines.push(resume.summary);
     lines.push('');
   }
-  
+
   if (resume.experience.length > 0) {
     lines.push('## Experience');
     resume.experience.forEach((exp) => {
@@ -174,7 +178,7 @@ export const exportToMarkdown = (resume: Resume): string => {
       lines.push('');
     });
   }
-  
+
   if (resume.education.length > 0) {
     lines.push('## Education');
     resume.education.forEach((edu) => {
@@ -184,7 +188,7 @@ export const exportToMarkdown = (resume: Resume): string => {
       lines.push('');
     });
   }
-  
+
   lines.push('## Skills');
   if (resume.skills.technical.length > 0) {
     lines.push(`**Technical:** ${resume.skills.technical.join(', ')}`);
@@ -195,6 +199,6 @@ export const exportToMarkdown = (resume: Resume): string => {
   if (resume.skills.softSkills.length > 0) {
     lines.push(`**Soft Skills:** ${resume.skills.softSkills.join(', ')}`);
   }
-  
+
   return lines.join('\n');
 };

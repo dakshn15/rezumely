@@ -3,11 +3,18 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useResumeStore } from '@/store/resumeStore';
 import { useSettingsStore } from '@/store/settingsStore';
+import api from '@/services/api';
 import { TemplateRenderer } from '@/components/templates/TemplateRenderer';
 import { CustomButton } from '@/components/ui/custom-button';
 import { CustomInput } from '@/components/ui/custom-input';
 import { CustomTextarea } from '@/components/ui/custom-textarea';
 import { ATSScore } from '@/components/editor/ATSScore';
+import { JobMatcher } from '@/components/dashboard/JobMatcher';
+import { CoverLetterGenerator } from '@/components/dashboard/CoverLetterGenerator';
+import { VersionHistory } from '@/components/editor/VersionHistory';
+import { ResumeUpload } from '@/components/dashboard/ResumeUpload';
+import { SummaryGenerator } from '@/components/editor/SummaryGenerator';
+import { ExperienceGenerator } from '@/components/editor/ExperienceGenerator';
 import { ProgressRing } from '@/components/ui/progress-ring';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -22,8 +29,9 @@ import {
   Undo2, Redo2, Award, Heart, Palette, Type, ChevronDown,
   Check, RotateCcw, ZoomIn, ZoomOut, X, Sparkles,
   Mail, Phone, MapPin, Linkedin, Github, Globe, Calendar,
-  Building2, CheckCircle2, Circle, Menu, Settings2
+  Building2, CheckCircle2, Circle, Menu, Settings2, Clock
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -37,8 +45,30 @@ import { templateInfo } from '@/components/templates/TemplateRenderer';
 const Editor = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const currentResumeRaw = useResumeStore((state) => state.currentResume);
+  const currentResume = React.useMemo(() => {
+    return {
+      ...defaultResume,
+      ...currentResumeRaw,
+      personalInfo: {
+        ...defaultResume.personalInfo,
+        ...(currentResumeRaw?.personalInfo || {})
+      },
+      skills: {
+        ...defaultResume.skills,
+        ...(currentResumeRaw?.skills || {})
+      },
+      experience: currentResumeRaw?.experience || [],
+      education: currentResumeRaw?.education || [],
+      projects: currentResumeRaw?.projects || [],
+      additional: {
+        ...defaultResume.additional,
+        ...(currentResumeRaw?.additional || {})
+      }
+    };
+  }, [currentResumeRaw]);
+
   const {
-    currentResume,
     updatePersonalInfo,
     updateSummary,
     addExperience,
@@ -60,7 +90,10 @@ const Editor = () => {
     redo,
     canUndo,
     canRedo,
-    setTemplate
+    setTemplate,
+    saveResume,
+    fetchResumes,
+    isSaved: isStoreSaved
   } = useResumeStore();
 
   const { exportSettings, templateSettings, updateTemplateSettings } = useSettingsStore();
@@ -74,6 +107,7 @@ const Editor = () => {
   const [showStylePanel, setShowStylePanel] = useState(false);
   const [zoom, setZoom] = useState(0.6);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showSamples, setShowSamples] = useState(false);
 
   // Calculate fit-to-width zoom
@@ -119,12 +153,14 @@ const Editor = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [canUndo, canRedo, undo, redo]);
 
-  // Auto-save indicator
+  // Auto-save
   useEffect(() => {
     setIsSaved(false);
-    const timer = setTimeout(() => setIsSaved(true), 1500);
+    const timer = setTimeout(() => {
+      saveResume(currentResume).then(() => setIsSaved(true));
+    }, 2000);
     return () => clearTimeout(timer);
-  }, [currentResume]);
+  }, [currentResume, saveResume]);
 
   // Auto-fit preview on mount
   useEffect(() => {
@@ -133,6 +169,10 @@ const Editor = () => {
     }, 200);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    fetchResumes();
+  }, [fetchResumes]);
 
   // Apply template from URL parameter
   useEffect(() => {
@@ -145,22 +185,36 @@ const Editor = () => {
   }, [searchParams, setTemplate, navigate]);
 
   const handleExportPDF = async () => {
-    if (!previewRef.current) return;
     setIsExporting(true);
     try {
+      if (!previewRef.current) {
+        throw new Error("Preview element not found");
+      }
+
+      toast.info("Generating PDF, please wait...");
+
       await exportToPDF(
         previewRef.current,
         `${currentResume.personalInfo.name || 'resume'}.pdf`,
-        exportSettings
+        exportSettings,
+        (progress) => {
+          if (progress.status === 'error') {
+            toast.error(progress.message);
+          } else if (progress.status === 'complete') {
+            toast.success("PDF generated successfully!");
+          }
+        }
       );
     } catch (error) {
       console.error('Export failed:', error);
+      toast.error("Failed to generate PDF. Please try again.");
     } finally {
       setIsExporting(false);
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    await saveResume(currentResume);
     setIsSaved(true);
   };
 
@@ -205,23 +259,23 @@ const Editor = () => {
   const getSectionStatus = (sectionId: string) => {
     switch (sectionId) {
       case 'personal':
-        return currentResume.personalInfo.name && currentResume.personalInfo.email;
+        return currentResume.personalInfo?.name && currentResume.personalInfo?.email;
       case 'summary':
         return !!currentResume.summary;
       case 'experience':
-        return currentResume.experience.length > 0;
+        return (currentResume.experience || []).length > 0;
       case 'education':
-        return currentResume.education.length > 0;
+        return (currentResume.education || []).length > 0;
       case 'skills':
-        return currentResume.skills.technical.length > 0;
+        return (currentResume.skills?.technical || []).length > 0;
       case 'projects':
-        return currentResume.projects.length > 0;
+        return (currentResume.projects || []).length > 0;
       case 'certifications':
-        return currentResume.additional.certifications.length > 0;
+        return (currentResume.additional?.certifications || []).length > 0;
       case 'additional':
-        return currentResume.additional.awards.length > 0 ||
-          currentResume.additional.volunteer.length > 0 ||
-          currentResume.additional.hobbies.length > 0;
+        return (currentResume.additional?.awards || []).length > 0 ||
+          (currentResume.additional?.volunteer || []).length > 0 ||
+          (currentResume.additional?.hobbies || []).length > 0;
       default:
         return false;
     }
@@ -323,6 +377,16 @@ const Editor = () => {
             <Palette className="h-4 w-4" />
           </CustomButton>
 
+          {/* Version History */}
+          <CustomButton
+            variant={showVersionHistory ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowVersionHistory(!showVersionHistory)}
+            title="Version History"
+          >
+            <Clock className="h-4 w-4" />
+          </CustomButton>
+
           {/* Save */}
           <CustomButton variant="outline" size="sm" onClick={handleSave}>
             {isSaved ? <Check className="h-4 w-4 text-green-500" /> : <Save className="h-4 w-4" />}
@@ -340,6 +404,43 @@ const Editor = () => {
             <span className="hidden sm:inline">Export</span>
           </CustomButton>
 
+          {/* Share Button */}
+          <CustomButton
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              const url = window.location.href;
+              let success = false;
+              // Primary: modern Clipboard API
+              try {
+                await navigator.clipboard.writeText(url);
+                success = true;
+              } catch {
+                // Fallback for non-HTTPS or restricted environments
+                try {
+                  const ta = document.createElement('textarea');
+                  ta.value = url;
+                  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;';
+                  document.body.appendChild(ta);
+                  ta.focus();
+                  ta.select();
+                  success = document.execCommand('copy');
+                  document.body.removeChild(ta);
+                } catch {
+                  success = false;
+                }
+              }
+              if (success) {
+                toast.success('Link copied to clipboard!');
+              } else {
+                toast.error('Failed to copy link. Please copy the URL manually.');
+              }
+            }}
+            title="Copy Link"
+          >
+            <Globe className="h-4 w-4" />
+          </CustomButton>
+
           {/* Mobile Menu */}
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -352,17 +453,17 @@ const Editor = () => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Sections */}
-        <aside className="hidden md:flex w-64 border-r bg-card flex-col shrink-0">
+        <aside className="hidden md:flex max-w-[350px] border-r bg-card flex-col shrink-0">
           <div className="p-4 border-b">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              Sections
-            </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                Sections
+              </h2>
               <span className="text-xs text-muted-foreground">{completion}% complete</span>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin min-h-[150px]">
+          <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin min-h-[40%]">
             {sections.map((section) => {
               const Icon = section.icon;
               const isActive = activeSection === section.id;
@@ -396,6 +497,15 @@ const Editor = () => {
 
           <div className="p-4 border-t overflow-y-auto scrollbar-thin">
             <ATSScore />
+            <div className="mt-4">
+              <JobMatcher />
+            </div>
+            <div className="mt-4">
+              <CoverLetterGenerator />
+            </div>
+            <div className="mt-4">
+              <ResumeUpload />
+            </div>
           </div>
         </aside>
 
@@ -435,6 +545,13 @@ const Editor = () => {
                 })}
               </div>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Version History Sidebar */}
+        <AnimatePresence>
+          {showVersionHistory && (
+            <VersionHistory onClose={() => setShowVersionHistory(false)} />
           )}
         </AnimatePresence>
 
@@ -554,6 +671,10 @@ const Editor = () => {
                       </div>
                       <Card>
                         <CardContent className="pt-6">
+                          <SummaryGenerator
+                            jobTitle={currentResume.personalInfo.title}
+                            onSelect={(summary) => updateSummary(summary)}
+                          />
                           <CustomTextarea
                             label="Summary"
                             value={currentResume.summary}
@@ -659,6 +780,13 @@ const Editor = () => {
                                   />
                                   Currently working here
                                 </label>
+                                <ExperienceGenerator
+                                  role={exp.position}
+                                  onAddPoints={(points) => {
+                                    const newAchievements = [...exp.achievements, ...points];
+                                    updateExperience(exp.id, { achievements: newAchievements });
+                                  }}
+                                />
                                 <CustomTextarea
                                   label="Achievements (one per line)"
                                   value={exp.achievements.join('\n')}
@@ -1167,7 +1295,7 @@ const Editor = () => {
           {/* Preview Panel */}
           <div
             ref={previewContainerRef}
-            className="hidden lg:flex w-[60%] border-l bg-gradient-to-b from-muted/50 to-background flex-col shrink-0"
+            className="hidden lg:flex w-[50%] border-l bg-gradient-to-b from-muted/50 to-background flex-col shrink-0"
           >
             <div className="h-14 border-b bg-card/95 backdrop-blur-sm flex items-center justify-between px-4 shrink-0">
               <div className="flex items-center gap-2">

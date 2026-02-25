@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
 import { Resume, defaultResume, Experience, Education, Project, Certification, Skills } from '@/data/resumeModel';
 import { nanoid } from 'nanoid';
+import api from '@/services/api';
 
 interface HistoryState {
   past: Resume[];
@@ -14,46 +15,46 @@ interface ResumeState {
   history: HistoryState;
   isSaving: boolean;
   lastSaved: string | null;
-  
+
   // Resume actions
   setCurrentResume: (resume: Resume) => void;
   updatePersonalInfo: (info: Partial<Resume['personalInfo']>) => void;
   updateSummary: (summary: string) => void;
-  
+
   // Experience actions
   addExperience: (experience: Omit<Experience, 'id'>) => void;
   updateExperience: (id: string, experience: Partial<Experience>) => void;
   deleteExperience: (id: string) => void;
   reorderExperience: (startIndex: number, endIndex: number) => void;
-  
+
   // Education actions
   addEducation: (education: Omit<Education, 'id'>) => void;
   updateEducation: (id: string, education: Partial<Education>) => void;
   deleteEducation: (id: string) => void;
   reorderEducation: (startIndex: number, endIndex: number) => void;
-  
+
   // Skills actions
   updateSkills: (skills: Partial<Skills>) => void;
   addSkill: (category: keyof Skills, skill: string) => void;
   removeSkill: (category: keyof Skills, skill: string) => void;
-  
+
   // Projects actions
   addProject: (project: Omit<Project, 'id'>) => void;
   updateProject: (id: string, project: Partial<Project>) => void;
   deleteProject: (id: string) => void;
   reorderProjects: (startIndex: number, endIndex: number) => void;
-  
+
   // Certification actions
   addCertification: (cert: Omit<Certification, 'id'>) => void;
   updateCertification: (id: string, cert: Partial<Certification>) => void;
   deleteCertification: (id: string) => void;
-  
+
   // Additional actions
   updateAdditional: (field: 'awards' | 'volunteer' | 'hobbies', values: string[]) => void;
-  
+
   // Template actions
   setTemplate: (templateId: string) => void;
-  
+
   // Resume management
   createNewResume: (name?: string) => void;
   duplicateResume: (id: string) => void;
@@ -61,13 +62,17 @@ interface ResumeState {
   renameResume: (id: string, name: string) => void;
   loadResume: (id: string) => void;
   importResume: (resume: Resume) => void;
-  
+
   // History actions
   undo: () => void;
   redo: () => void;
   canUndo: () => boolean;
   canRedo: () => boolean;
-  
+
+  // API actions
+  fetchResumes: () => Promise<void>;
+  saveResume: (resume: Resume) => Promise<void>;
+
   // Utility
   setSaving: (saving: boolean) => void;
   setLastSaved: (date: string) => void;
@@ -414,6 +419,72 @@ export const useResumeStore = create<ResumeState>()(
 
         setSaving: (isSaving) => set({ isSaving }),
         setLastSaved: (lastSaved) => set({ lastSaved }),
+
+        // API Actions
+        fetchResumes: async () => {
+          try {
+            const response = await api.get('/resumes');
+            // Assuming backend returns { resumes: Resume[] } or Resume[]
+            const fetchedResumes = Array.isArray(response.data) ? response.data : response.data.resumes;
+            // Map backend structure to frontend if needed, for now assume matching or parsing JSON
+            // If backend stores resumeJson, we need to parse it
+            const parsedResumes = fetchedResumes.map((r: any) => ({
+              ...r,
+              ...(typeof r.resumeJson === 'string' ? JSON.parse(r.resumeJson) : r.resumeJson),
+              id: r.id // Ensure ID comes from backend
+            }));
+
+            set({ allResumes: parsedResumes });
+          } catch (error) {
+            console.error('Failed to fetch resumes:', error);
+          }
+        },
+
+        saveResume: async (resume) => {
+          set({ isSaving: true });
+          try {
+            // Optimistic update logic:
+            // If the ID is a nanoid (length 21 default), it's likely local-only.
+            // Backend UUIDs are 36 chars.
+            const isLocal = resume.id.length < 30;
+
+            if (isLocal) {
+              const response = await api.post('/resumes', {
+                title: resume.personalInfo.name || 'Untitled Resume',
+                resumeJson: resume
+              });
+
+              const newId = response.data.id;
+
+              // Update local state with real backend ID
+              set((state) => {
+                const updatedResume = { ...resume, id: newId };
+                const updatedAll = state.allResumes.map(r => r.id === resume.id ? updatedResume : r);
+                return {
+                  currentResume: updatedResume,
+                  allResumes: updatedAll,
+                  lastSaved: new Date().toISOString(),
+                  isSaving: false
+                };
+              });
+            } else {
+              await api.put(`/resumes/${resume.id}`, {
+                title: resume.personalInfo.name || 'Untitled Resume',
+                resumeJson: resume
+              });
+
+              set({
+                lastSaved: new Date().toISOString(),
+                isSaving: false
+              });
+            }
+
+          } catch (error) {
+            console.error('Failed to save resume:', error);
+            set({ isSaving: false });
+          }
+        },
+
       }),
       {
         name: 'resume-storage',

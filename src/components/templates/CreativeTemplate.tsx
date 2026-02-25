@@ -37,40 +37,40 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, settings }) 
       <div className="relative text-white px-8 py-8 overflow-hidden" style={{ background: `linear-gradient(90deg, ${merged.accentColor}, ${merged.primaryColor})` }}>
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-20 w-24 h-24 bg-white/5 rounded-full translate-y-1/2" />
-        
+
         <div className="relative">
           <h1 className="font-bold mb-1" style={{ fontSize: fonts.heading }}>{personalInfo.name || 'Your Name'}</h1>
           {personalInfo.title && (
             <h2 className="font-light mb-4" style={{ opacity: 0.9 }}>{personalInfo.title}</h2>
           )}
-          <div className="flex flex-wrap gap-4 text-[10px]">
+          <div className="flex flex-wrap text-[10px]">
             {personalInfo.email && (
-              <div className="flex items-center gap-1.5">
-                <Mail className="h-3 w-3" />
+              <div className="flex items-center" style={{ marginRight: '16px', marginBottom: '8px' }}>
+                <Mail className="h-3 w-3 mr-1.5" />
                 <span>{personalInfo.email}</span>
               </div>
             )}
             {personalInfo.phone && (
-              <div className="flex items-center gap-1.5">
-                <Phone className="h-3 w-3" />
+              <div className="flex items-center" style={{ marginRight: '16px', marginBottom: '8px' }}>
+                <Phone className="h-3 w-3 mr-1.5" />
                 <span>{personalInfo.phone}</span>
               </div>
             )}
             {personalInfo.location && (
-              <div className="flex items-center gap-1.5">
-                <MapPin className="h-3 w-3" />
+              <div className="flex items-center" style={{ marginRight: '16px', marginBottom: '8px' }}>
+                <MapPin className="h-3 w-3 mr-1.5" />
                 <span>{personalInfo.location}</span>
               </div>
             )}
             {personalInfo.linkedin && (
-              <div className="flex items-center gap-1.5">
-                <Linkedin className="h-3 w-3" />
+              <div className="flex items-center" style={{ marginRight: '16px', marginBottom: '8px' }}>
+                <Linkedin className="h-3 w-3 mr-1.5" />
                 <span>{personalInfo.linkedin}</span>
               </div>
             )}
             {personalInfo.github && (
-              <div className="flex items-center gap-1.5">
-                <Github className="h-3 w-3" />
+              <div className="flex items-center" style={{ marginRight: '16px', marginBottom: '8px' }}>
+                <Github className="h-3 w-3 mr-1.5" />
                 <span>{personalInfo.github}</span>
               </div>
             )}
@@ -94,7 +94,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, settings }) 
             {/* Experience Timeline */}
             {experience.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2" style={{ color: merged.primaryColor }}>
+                <h3 className="text-sm font-bold uppercase  mb-4 flex items-center gap-2" style={{ color: merged.primaryColor }}>
                   <span className="w-8 h-0.5" style={{ backgroundColor: merged.accentColor }} />
                   Experience
                 </h3>
@@ -102,7 +102,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, settings }) 
                   <div className="absolute left-[5px] top-2 bottom-2 w-0.5" style={{ background: `linear-gradient(180deg, ${merged.accentColor}, ${merged.primaryColor})` }} />
                   <div className="space-y-4">
                     {experience.map((exp, index) => (
-                      <div key={exp.id} className="relative pl-6">
+                      <div key={exp.id} className="relative pl-6 print-break-inside-avoid">
                         <div className="absolute left-0 top-1.5 w-3 h-3 rounded-full bg-white border-2 border-violet-500" />
                         <div className="flex justify-between items-start">
                           <div>
@@ -133,13 +133,13 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, settings }) 
             {/* Projects */}
             {projects.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2" style={{ color: merged.primaryColor }}>
+                <h3 className="text-sm font-bold uppercase  mb-4 flex items-center gap-2" style={{ color: merged.primaryColor }}>
                   <span className="w-8 h-0.5" style={{ backgroundColor: merged.accentColor }} />
                   Projects
                 </h3>
                 <div className="grid gap-3">
                   {projects.map((project) => (
-                    <div key={project.id} className="bg-gray-50 rounded-lg p-3">
+                    <div key={project.id} className="bg-gray-50 rounded-lg p-3 print-break-inside-avoid">
                       <div className="flex justify-between items-start">
                         <h4 className="font-bold text-gray-900">{project.name}</h4>
                         {project.url && (
@@ -148,9 +148,9 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, settings }) 
                       </div>
                       <p className="text-gray-600 text-[10px] mt-1">{project.description}</p>
                       {project.technologies.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
+                        <div className="flex flex-wrap mt-2">
                           {project.technologies.map((tech, i) => (
-                            <span key={i} className="px-2 py-0.5 rounded text-[9px] font-medium" style={{ backgroundColor: hexToRgba(merged.accentColor, 0.12), color: merged.accentColor }}>
+                            <span key={i} className="px-2 py-0.5 rounded text-[9px] font-medium" style={{ backgroundColor: hexToRgba(merged.accentColor, 0.12), color: merged.accentColor, marginRight: '4px', marginBottom: '4px' }}>
                               {tech}
                             </span>
                           ))}
@@ -168,7 +168,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, settings }) 
             {/* Education */}
             {education.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2" style={{ color: merged.primaryColor }}>
+                <h3 className="text-sm font-bold uppercase  mb-3 flex items-center gap-2" style={{ color: merged.primaryColor }}>
                   <span className="w-4 h-0.5" style={{ backgroundColor: merged.accentColor }} />
                   Education
                 </h3>
@@ -190,7 +190,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, settings }) 
             {/* Skills */}
             {(skills.technical.length > 0 || skills.softSkills.length > 0) && (
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2" style={{ color: merged.primaryColor }}>
+                <h3 className="text-sm font-bold uppercase  mb-3 flex items-center gap-2" style={{ color: merged.primaryColor }}>
                   <span className="w-4 h-0.5" style={{ backgroundColor: merged.accentColor }} />
                   Skills
                 </h3>
@@ -213,13 +213,13 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, settings }) 
             {/* Languages */}
             {skills.languages.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2" style={{ color: merged.primaryColor }}>
+                <h3 className="text-sm font-bold uppercase  mb-3 flex items-center gap-2" style={{ color: merged.primaryColor }}>
                   <span className="w-4 h-0.5" style={{ backgroundColor: merged.accentColor }} />
                   Languages
                 </h3>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap">
                   {skills.languages.map((lang, i) => (
-                    <span key={i} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-[9px]">
+                    <span key={i} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-[9px]" style={{ marginRight: '6px', marginBottom: '6px' }}>
                       {lang}
                     </span>
                   ))}
@@ -230,7 +230,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, settings }) 
             {/* Certifications */}
             {additional.certifications.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2" style={{ color: merged.primaryColor }}>
+                <h3 className="text-sm font-bold uppercase  mb-3 flex items-center gap-2" style={{ color: merged.primaryColor }}>
                   <span className="w-4 h-0.5" style={{ backgroundColor: merged.accentColor }} />
                   Certifications
                 </h3>

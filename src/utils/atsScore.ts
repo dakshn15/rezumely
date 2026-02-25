@@ -16,171 +16,192 @@ const actionVerbs = [
   'coordinated', 'created', 'delivered', 'designed', 'developed', 'directed',
   'established', 'executed', 'generated', 'implemented', 'improved', 'increased',
   'initiated', 'launched', 'led', 'managed', 'optimized', 'organized', 'produced',
-  'reduced', 'resolved', 'spearheaded', 'streamlined', 'supervised', 'transformed'
+  'reduced', 'resolved', 'spearheaded', 'streamlined', 'supervised', 'transformed',
+  'engineered', 'programmed', 'architected', 'deployed', 'maintained', 'scaled'
+];
+
+const weakWords = [
+  'responsible for', 'duties included', 'helped', 'worked on', 'assisted', 'attempted'
+];
+
+const buzzwords = [
+  'synergy', 'game-changer', 'rockstar', 'guru', 'ninja', 'thought leader'
 ];
 
 export const calculateATSScore = (resume: Resume): ATSScoreResult => {
   const recommendations: ATSRecommendation[] = [];
   let score = 0;
-  const maxScore = 100;
-  let pointsEarned = 0;
 
-  // Contact Information (15 points)
-  const contactPoints = 15;
-  let contactEarned = 0;
-  
-  if (resume.personalInfo.name) contactEarned += 3;
-  else recommendations.push({ category: 'error', message: 'Add your full name', section: 'Personal Info' });
-  
-  if (resume.personalInfo.email) contactEarned += 4;
-  else recommendations.push({ category: 'error', message: 'Add your email address', section: 'Personal Info' });
-  
-  if (resume.personalInfo.phone) contactEarned += 4;
-  else recommendations.push({ category: 'error', message: 'Add your phone number', section: 'Personal Info' });
-  
-  if (resume.personalInfo.location) contactEarned += 2;
-  else recommendations.push({ category: 'warning', message: 'Consider adding your location', section: 'Personal Info' });
-  
-  if (resume.personalInfo.linkedin) contactEarned += 2;
-  else recommendations.push({ category: 'warning', message: 'Add your LinkedIn profile', section: 'Personal Info' });
+  // Scoring Criteria Weights
+  const weights = {
+    contact: 10,
+    summary: 15,
+    experience: 35,
+    education: 15,
+    skills: 15,
+    projects: 10
+  };
 
-  pointsEarned += contactEarned;
+  // 1. Contact Information Score (Max 10)
+  let contactScore = 0;
+  if (resume.personalInfo.name) contactScore += 2;
+  else recommendations.push({ category: 'error', message: 'Missing full name', section: 'Personal Info' });
 
-  // Summary (10 points)
-  const summaryPoints = 10;
-  let summaryEarned = 0;
-  
+  if (resume.personalInfo.email) contactScore += 3;
+  else recommendations.push({ category: 'error', message: 'Missing email address', section: 'Personal Info' });
+
+  if (resume.personalInfo.phone) contactScore += 3;
+  else recommendations.push({ category: 'error', message: 'Missing phone number', section: 'Personal Info' });
+
+  if (resume.personalInfo.linkedin) contactScore += 1;
+  else recommendations.push({ category: 'warning', message: 'Add LinkedIn profile for better visibility', section: 'Personal Info' });
+
+  if (resume.personalInfo.location) contactScore += 1;
+
+  score += Math.min(contactScore, weights.contact);
+
+  // 2. Summary Score (Max 15)
+  let summaryScore = 0;
   if (resume.summary) {
-    if (resume.summary.length >= 100) {
-      summaryEarned = 10;
-      recommendations.push({ category: 'success', message: 'Great professional summary!', section: 'Summary' });
-    } else if (resume.summary.length >= 50) {
-      summaryEarned = 6;
-      recommendations.push({ category: 'warning', message: 'Consider expanding your summary to 100+ characters', section: 'Summary' });
+    const summaryLength = resume.summary.length;
+    if (summaryLength > 500) {
+      summaryScore += 15;
+      recommendations.push({ category: 'success', message: 'Strong summary length', section: 'Summary' });
+    } else if (summaryLength > 200) {
+      summaryScore += 10;
+      recommendations.push({ category: 'warning', message: 'Consider expanding summary to highlight key achievements', section: 'Summary' });
     } else {
-      summaryEarned = 3;
-      recommendations.push({ category: 'warning', message: 'Your summary is too short', section: 'Summary' });
+      summaryScore += 5;
+      recommendations.push({ category: 'error', message: 'Summary is too short. Aim for 3-4 sentences.', section: 'Summary' });
+    }
+
+    // Check for buzzwords to avoid
+    const foundBuzzwords = buzzwords.filter(word => resume.summary.toLowerCase().includes(word));
+    if (foundBuzzwords.length > 0) {
+      recommendations.push({ category: 'warning', message: `Avoid clichés like: ${foundBuzzwords.join(', ')}`, section: 'Summary' });
     }
   } else {
-    recommendations.push({ category: 'warning', message: 'Add a professional summary', section: 'Summary' });
+    recommendations.push({ category: 'error', message: 'Missing professional summary', section: 'Summary' });
   }
-  
-  pointsEarned += summaryEarned;
+  score += Math.min(summaryScore, weights.summary);
 
-  // Experience (30 points)
-  const expPoints = 30;
-  let expEarned = 0;
-  
+  // 3. Experience Score (Max 35)
+  let expScore = 0;
   if (resume.experience.length > 0) {
-    expEarned += 10;
-    
-    // Check for achievements with action verbs
-    let hasActionVerbs = false;
-    let hasQuantifiableResults = false;
-    
-    resume.experience.forEach((exp) => {
-      exp.achievements.forEach((achievement) => {
-        const lowerAchievement = achievement.toLowerCase();
-        if (actionVerbs.some(verb => lowerAchievement.startsWith(verb))) {
-          hasActionVerbs = true;
+    expScore += 10; // Base points for having experience
+
+    // Achievement Analysis
+    let totalAchievements = 0;
+    let actionVerbCount = 0;
+    let metricCount = 0;
+    let weakWordCount = 0;
+
+    resume.experience.forEach(exp => {
+      totalAchievements += exp.achievements.length;
+
+      exp.achievements.forEach(ach => {
+        const lowerAch = ach.toLowerCase();
+
+        // Check for Action Verbs
+        if (actionVerbs.some(verb => lowerAch.startsWith(verb) || lowerAch.includes(` ${verb} `))) {
+          actionVerbCount++;
         }
-        if (/\d+%|\$\d+|\d+\+/.test(achievement)) {
-          hasQuantifiableResults = true;
+
+        // Check for weak words
+        if (weakWords.some(word => lowerAch.includes(word))) {
+          weakWordCount++;
+        }
+
+        // Check for Metrics (%, $, numbers)
+        if (/\d+%|\$\d+|\b\d+\b/.test(ach)) {
+          metricCount++;
         }
       });
     });
-    
-    if (hasActionVerbs) {
-      expEarned += 10;
-      recommendations.push({ category: 'success', message: 'Good use of action verbs in achievements', section: 'Experience' });
-    } else {
-      recommendations.push({ category: 'warning', message: 'Start achievements with action verbs (e.g., "Achieved", "Led", "Developed")', section: 'Experience' });
-    }
-    
-    if (hasQuantifiableResults) {
-      expEarned += 10;
-      recommendations.push({ category: 'success', message: 'Great quantifiable results in achievements', section: 'Experience' });
-    } else {
-      recommendations.push({ category: 'warning', message: 'Add quantifiable results (e.g., "Increased sales by 25%")', section: 'Experience' });
-    }
-    
-    // Check achievements count
-    const totalAchievements = resume.experience.reduce((sum, exp) => sum + exp.achievements.length, 0);
-    if (totalAchievements < resume.experience.length * 2) {
-      recommendations.push({ category: 'warning', message: 'Add more achievements to each position (at least 2-3)', section: 'Experience' });
-    }
-  } else {
-    recommendations.push({ category: 'error', message: 'Add work experience', section: 'Experience' });
-  }
-  
-  pointsEarned += expEarned;
 
-  // Education (15 points)
-  const eduPoints = 15;
-  let eduEarned = 0;
-  
+    // Detailed Recommendations
+    if (actionVerbCount >= totalAchievements * 0.7 && totalAchievements > 0) {
+      expScore += 10;
+      recommendations.push({ category: 'success', message: 'Excellent use of action verbs!', section: 'Experience' });
+    } else {
+      expScore += 5;
+      recommendations.push({ category: 'warning', message: 'Start bullet points with strong action verbs (e.g., "Led", "Developed")', section: 'Experience' });
+    }
+
+    if (metricCount >= 3) {
+      expScore += 15;
+      recommendations.push({ category: 'success', message: 'Great use of quantifiable results!', section: 'Experience' });
+    } else {
+      expScore += 5;
+      recommendations.push({ category: 'warning', message: 'Add more numbers/metrics (e.g., "Increased sales by 20%")', section: 'Experience' });
+    }
+
+    if (weakWordCount > 0) {
+      recommendations.push({ category: 'warning', message: `Replace passive phrases like "Responsible for" with action verbs`, section: 'Experience' });
+      expScore -= 2; // Penalty
+    }
+
+  } else {
+    recommendations.push({ category: 'error', message: 'Missing work experience section', section: 'Experience' });
+  }
+  score += Math.max(0, Math.min(expScore, weights.experience)); // Ensure non-negative
+
+  // 4. Education Score (Max 15)
+  let eduScore = 0;
   if (resume.education.length > 0) {
-    eduEarned += 10;
-    
-    const hasDetails = resume.education.some(edu => edu.gpa || (edu.achievements && edu.achievements.length > 0));
-    if (hasDetails) {
-      eduEarned += 5;
-      recommendations.push({ category: 'success', message: 'Good education details', section: 'Education' });
-    } else {
-      recommendations.push({ category: 'warning', message: 'Consider adding GPA or achievements', section: 'Education' });
+    eduScore += 15;
+    if (resume.education.some(e => !e.startDate || !e.endDate)) {
+      recommendations.push({ category: 'warning', message: 'Ensure all education entries have dates', section: 'Education' });
+      eduScore -= 5;
     }
   } else {
-    recommendations.push({ category: 'error', message: 'Add your education', section: 'Education' });
+    recommendations.push({ category: 'error', message: 'Missing education section', section: 'Education' });
   }
-  
-  pointsEarned += eduEarned;
+  score += Math.min(eduScore, weights.education);
 
-  // Skills (20 points)
-  const skillsPoints = 20;
-  let skillsEarned = 0;
-  
-  const totalSkills = resume.skills.technical.length + resume.skills.languages.length + resume.skills.softSkills.length;
-  
-  if (totalSkills > 0) {
-    if (totalSkills >= 10) {
-      skillsEarned = 20;
-      recommendations.push({ category: 'success', message: 'Comprehensive skills section', section: 'Skills' });
-    } else if (totalSkills >= 5) {
-      skillsEarned = 14;
-      recommendations.push({ category: 'warning', message: 'Consider adding more skills (aim for 10+)', section: 'Skills' });
-    } else {
-      skillsEarned = 8;
-      recommendations.push({ category: 'warning', message: 'Add more relevant skills', section: 'Skills' });
-    }
-    
-    if (resume.skills.technical.length === 0) {
-      recommendations.push({ category: 'warning', message: 'Add technical skills', section: 'Skills' });
-    }
+  // 5. Skills (Max 15)
+  let skillScore = 0;
+  const totalSkills = resume.skills.technical.length + resume.skills.softSkills.length + resume.skills.languages.length;
+
+  if (totalSkills >= 8) {
+    skillScore += 15;
+    recommendations.push({ category: 'success', message: 'Good skills coverage', section: 'Skills' });
+  } else if (totalSkills > 0) {
+    skillScore += 8;
+    recommendations.push({ category: 'warning', message: 'Add more relevant skills (aim for 8+)', section: 'Skills' });
   } else {
-    recommendations.push({ category: 'error', message: 'Add your skills', section: 'Skills' });
+    recommendations.push({ category: 'error', message: 'Missing skills section', section: 'Skills' });
   }
-  
-  pointsEarned += skillsEarned;
 
-  // Projects (10 points - bonus)
+  // Check for specific hard skills depending on job title (Basic logic for now)
+  // Ideally this compares against job description
+  if (resume.skills.technical.length === 0) {
+    recommendations.push({ category: 'warning', message: 'Include technical/hard skills relevant to your industry', section: 'Skills' });
+    skillScore -= 2;
+  }
+  if (resume.skills.softSkills.length > 5) {
+    recommendations.push({ category: 'warning', message: 'Limit soft skills. Focus on hard skills.', section: 'Skills' });
+    skillScore -= 2;
+  }
+
+  score += Math.max(0, Math.min(skillScore, weights.skills));
+
+  // 6. Projects (Max 10)
+  let projScore = 0;
   if (resume.projects.length > 0) {
-    pointsEarned += 5;
+    projScore += 10;
     if (resume.projects.some(p => p.url)) {
-      pointsEarned += 5;
-      recommendations.push({ category: 'success', message: 'Projects with links add credibility', section: 'Projects' });
+      recommendations.push({ category: 'success', message: 'Portfolio links included', section: 'Projects' });
     }
-  }
-
-  score = Math.min(Math.round((pointsEarned / maxScore) * 100), 100);
-
-  // Add overall recommendation based on score
-  if (score >= 80) {
-    recommendations.unshift({ category: 'success', message: 'Your resume is well-optimized for ATS systems!', section: 'Overall' });
-  } else if (score >= 60) {
-    recommendations.unshift({ category: 'warning', message: 'Your resume is good but could be improved', section: 'Overall' });
   } else {
-    recommendations.unshift({ category: 'error', message: 'Your resume needs more work for ATS optimization', section: 'Overall' });
+    // Projects are optional but good
+    recommendations.push({ category: 'warning', message: 'Adding projects helps demonstrate skills', section: 'Projects' });
+    projScore += 5; // Give some points even if empty as it's optional, but less
   }
+  score += Math.min(projScore, weights.projects);
+
+  // Normalize final score
+  score = Math.min(Math.round(score), 100);
 
   return { score, recommendations };
 };

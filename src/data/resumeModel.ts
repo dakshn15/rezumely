@@ -40,6 +40,7 @@ export interface Project {
   url?: string;
   startDate?: string;
   endDate?: string;
+  highlights?: string[];
 }
 
 export interface Skills {
@@ -112,13 +113,13 @@ export const defaultResume: Resume = {
   },
 };
 
-export type SectionType = 
-  | 'personalInfo' 
-  | 'summary' 
-  | 'experience' 
-  | 'education' 
-  | 'skills' 
-  | 'projects' 
+export type SectionType =
+  | 'personalInfo'
+  | 'summary'
+  | 'experience'
+  | 'education'
+  | 'skills'
+  | 'projects'
   | 'additional';
 
 export interface SectionConfig {

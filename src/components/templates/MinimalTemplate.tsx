@@ -136,7 +136,7 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ resume, settings }) =
           </h3>
           <div className="space-y-3">
             {projects.map((project) => (
-              <div key={project.id} className="grid grid-cols-[140px_1fr] gap-4">
+              <div key={project.id} className="grid grid-cols-[140px_1fr] gap-4 print-break-inside-avoid">
                 <div className="text-[10px] text-gray-400">
                   {project.technologies.slice(0, 2).join(', ')}
                 </div>

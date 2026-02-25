@@ -27,11 +27,11 @@ const getFontSize = (size: string) => {
   }
 };
 
-const LinkWrapper: React.FC<{ href?: string; children: React.ReactNode; className?: string }> = ({ href, children, className }) => {
-  if (!href) return <span className={className}>{children}</span>;
+const LinkWrapper: React.FC<{ href?: string; children: React.ReactNode; className?: string; style?: React.CSSProperties }> = ({ href, children, className, style }) => {
+  if (!href) return <span className={className} style={style}>{children}</span>;
   const url = href.includes('@') ? `mailto:${href}` : (href.startsWith('http') ? href : `https://${href}`);
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className={`${className} hover:underline cursor-pointer`}>
+    <a href={url} target="_blank" rel="noopener noreferrer" className={`${className} hover:underline cursor-pointer`} style={style}>
       {children}
     </a>
   );
@@ -42,9 +42,9 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
   const fonts = getFontSize(settings.fontSize);
 
   return (
-    <div 
-      className="resume-template bg-white print:shadow-none" 
-      style={{ 
+    <div
+      className="resume-template bg-white print:shadow-none"
+      style={{
         fontFamily: settings.fontFamily,
         fontSize: fonts.base,
         width: '210mm',
@@ -56,18 +56,18 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
     >
       <div className="flex" style={{ minHeight: '297mm' }}>
         {/* Sidebar */}
-        <div 
-          className="w-[72mm] text-white p-6 print:!bg-[var(--primary-color)]" 
+        <div
+          className="w-[72mm] text-white p-6 print:!bg-[var(--primary-color)]"
           style={{ backgroundColor: settings.primaryColor }}
         >
           {/* Photo placeholder */}
           {settings.showPhoto && (
             personalInfo.photo ? (
-              <div className="w-28 h-28 mx-auto mb-5 rounded-full overflow-hidden border-3 border-white/30">
+              <div className="w-28 h-28 mx-auto mb-5 rounded-full overflow-hidden border-3 border-white/30" style={{ border: '3px solid rgba(255,255,255,0.3)' }}>
                 <img src={personalInfo.photo} alt={personalInfo.name} className="w-full h-full object-cover" data-photo />
               </div>
             ) : (
-              <div className="w-28 h-28 mx-auto mb-5 rounded-full bg-white/10 flex items-center justify-center text-3xl font-bold" data-photo>
+              <div className="w-28 h-28 mx-auto mb-5 rounded-full flex items-center justify-center text-3xl font-bold" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} data-photo>
                 {personalInfo.name ? personalInfo.name.split(' ').map(n => n[0]).join('') : 'YN'}
               </div>
             )
@@ -75,43 +75,43 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
 
           {/* Contact */}
           <div className="mb-6">
-            <h3 className="font-semibold uppercase tracking-wider mb-3 text-white/90 border-b border-white/20 pb-2" style={{ fontSize: fonts.section }}>
+            <h3 className="font-semibold uppercase mb-3 text-white/90 pb-2" style={{ fontSize: fonts.section, borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
               Contact
             </h3>
-            <div className="space-y-2.5" style={{ fontSize: fonts.small }}>
+            <div className='space-y-2' style={{ fontSize: fonts.small }}>
               {personalInfo.email && (
-                <LinkWrapper href={personalInfo.email} className="flex items-center gap-2.5">
-                  <Mail className="h-4 w-4 shrink-0 text-white/70" />
+                <LinkWrapper href={personalInfo.email} className="flex items-center" style={{ marginBottom: '10px' }}>
+                  <Mail className="h-4 w-4 shrink-0" style={{ color: 'rgba(255,255,255,0.7)', marginRight: '10px' }} />
                   <span className="break-all">{personalInfo.email}</span>
                 </LinkWrapper>
               )}
               {personalInfo.phone && (
-                <div className="flex items-center gap-2.5">
-                  <Phone className="h-4 w-4 shrink-0 text-white/70" />
+                <div className="flex items-center" style={{ marginBottom: '10px' }}>
+                  <Phone className="h-4 w-4 shrink-0" style={{ color: 'rgba(255,255,255,0.7)', marginRight: '10px' }} />
                   <span>{personalInfo.phone}</span>
                 </div>
               )}
               {personalInfo.location && (
-                <div className="flex items-center gap-2.5">
-                  <MapPin className="h-4 w-4 shrink-0 text-white/70" />
+                <div className="flex items-center" style={{ marginBottom: '10px' }}>
+                  <MapPin className="h-4 w-4 shrink-0" style={{ color: 'rgba(255,255,255,0.7)', marginRight: '10px' }} />
                   <span>{personalInfo.location}</span>
                 </div>
               )}
               {personalInfo.linkedin && (
-                <LinkWrapper href={personalInfo.linkedin} className="flex items-center gap-2.5">
-                  <Linkedin className="h-4 w-4 shrink-0 text-white/70" />
+                <LinkWrapper href={personalInfo.linkedin} className="flex items-center" style={{ marginBottom: '10px' }}>
+                  <Linkedin className="h-4 w-4 shrink-0" style={{ color: 'rgba(255,255,255,0.7)', marginRight: '10px' }} />
                   <span className="break-all">{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</span>
                 </LinkWrapper>
               )}
               {personalInfo.website && (
-                <LinkWrapper href={personalInfo.website} className="flex items-center gap-2.5">
-                  <Globe className="h-4 w-4 shrink-0 text-white/70" />
+                <LinkWrapper href={personalInfo.website} className="flex items-center" style={{ marginBottom: '10px' }}>
+                  <Globe className="h-4 w-4 shrink-0" style={{ color: 'rgba(255,255,255,0.7)', marginRight: '10px' }} />
                   <span className="break-all">{personalInfo.website.replace(/^https?:\/\/(www\.)?/, '')}</span>
                 </LinkWrapper>
               )}
               {personalInfo.github && (
-                <LinkWrapper href={personalInfo.github} className="flex items-center gap-2.5">
-                  <Github className="h-4 w-4 shrink-0 text-white/70" />
+                <LinkWrapper href={personalInfo.github} className="flex items-center" style={{ marginBottom: '10px' }}>
+                  <Github className="h-4 w-4 shrink-0" style={{ color: 'rgba(255,255,255,0.7)', marginRight: '10px' }} />
                   <span className="break-all">{personalInfo.github.replace(/^https?:\/\/(www\.)?/, '')}</span>
                 </LinkWrapper>
               )}
@@ -121,35 +121,35 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
           {/* Skills */}
           {(skills.technical.length > 0 || skills.languages.length > 0 || skills.softSkills.length > 0) && (
             <div className="mb-6">
-              <h3 className="font-semibold uppercase tracking-wider mb-3 text-white/90 border-b border-white/20 pb-2" style={{ fontSize: fonts.section }}>
+              <h3 className="font-semibold uppercase mb-3 text-white/90 pb-2" style={{ fontSize: fonts.section, borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
                 Skills
               </h3>
               {skills.technical.length > 0 && (
                 <div className="mb-4">
-                  <h4 className="font-medium mb-2 text-white/70" style={{ fontSize: fonts.small }}>Technical</h4>
-                  <div className="flex flex-wrap gap-1.5">
+                  <h4 className="font-medium mb-2" style={{ fontSize: fonts.small, color: 'rgba(255,255,255,0.7)' }}>Technical</h4>
+                  <div className="flex flex-wrap">
                     {skills.technical.map((skill, i) => (
-                      <span key={i} className="px-2.5 py-1 bg-white/15 rounded-md" style={{ fontSize: '10px' }}>{skill}</span>
+                      <span key={i} className="px-2.5 py-1 rounded-md" style={{ fontSize: '10px', backgroundColor: 'rgba(255,255,255,0.15)', marginRight: '6px', marginBottom: '6px' }}>{skill}</span>
                     ))}
                   </div>
                 </div>
               )}
               {skills.languages.length > 0 && (
                 <div className="mb-4">
-                  <h4 className="font-medium mb-2 text-white/70" style={{ fontSize: fonts.small }}>Languages</h4>
-                  <div className="space-y-1">
+                  <h4 className="font-medium mb-2" style={{ fontSize: fonts.small, color: 'rgba(255,255,255,0.7)' }}>Languages</h4>
+                  <div>
                     {skills.languages.map((lang, i) => (
-                      <div key={i} style={{ fontSize: fonts.small }}>{lang}</div>
+                      <div key={i} style={{ fontSize: fonts.small, marginBottom: '4px' }}>{lang}</div>
                     ))}
                   </div>
                 </div>
               )}
               {skills.softSkills.length > 0 && (
                 <div>
-                  <h4 className="font-medium mb-2 text-white/70" style={{ fontSize: fonts.small }}>Soft Skills</h4>
-                  <div className="flex flex-wrap gap-1.5">
+                  <h4 className="font-medium mb-2" style={{ fontSize: fonts.small, color: 'rgba(255,255,255,0.7)' }}>Soft Skills</h4>
+                  <div className="flex flex-wrap">
                     {skills.softSkills.map((skill, i) => (
-                      <span key={i} className="px-2.5 py-1 bg-white/15 rounded-md" style={{ fontSize: '10px' }}>{skill}</span>
+                      <span key={i} className="px-2.5 py-1 text-white rounded-md" style={{ fontSize: '10px', backgroundColor: 'rgba(255,255,255,0.15)', marginRight: '6px', marginBottom: '6px' }}>{skill}</span>
                     ))}
                   </div>
                 </div>
@@ -160,18 +160,18 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
           {/* Certifications */}
           {additional.certifications.length > 0 && (
             <div>
-              <h3 className="font-semibold uppercase tracking-wider mb-3 text-white/90 border-b border-white/20 pb-2" style={{ fontSize: fonts.section }}>
+              <h3 className="font-semibold uppercase mb-3 text-white/90 pb-2" style={{ fontSize: fonts.section, borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
                 Certifications
               </h3>
-              <div className="space-y-3">
+              <div>
                 {additional.certifications.map((cert) => (
-                  <div key={cert.id}>
+                  <div key={cert.id} style={{ marginBottom: '12px' }}>
                     <div className="font-medium" style={{ fontSize: fonts.small }}>
                       {cert.url ? (
                         <LinkWrapper href={cert.url}>{cert.name}</LinkWrapper>
                       ) : cert.name}
                     </div>
-                    <div className="text-white/60" style={{ fontSize: '10px' }}>{cert.issuer} • {cert.date}</div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>{cert.issuer} • {cert.date}</div>
                   </div>
                 ))}
               </div>
@@ -196,9 +196,9 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
             {/* Summary */}
             {summary && (
               <div className="mb-6">
-                <h3 
-                  className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
-                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: hexToRgba(settings.primaryColor, 0.2) }}
+                <h3
+                  className="font-semibold uppercase mb-2.5 pb-1.5"
+                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderBottom: `2px solid ${hexToRgba(settings.primaryColor, 0.2)}` }}
                 >
                   Professional Summary
                 </h3>
@@ -209,15 +209,15 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
             {/* Experience */}
             {experience.length > 0 && (
               <div className="mb-6">
-                <h3 
-                  className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
-                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: hexToRgba(settings.primaryColor, 0.2) }}
+                <h3
+                  className="font-semibold uppercase mb-2.5 pb-1.5"
+                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderBottom: `2px solid ${hexToRgba(settings.primaryColor, 0.2)}` }}
                 >
                   Experience
                 </h3>
-                <div className="space-y-4">
+                <div>
                   {experience.map((exp) => (
-                    <div key={exp.id}>
+                    <div key={exp.id} style={{ marginBottom: '16px' }}>
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-semibold text-gray-900">{exp.position}</h4>
@@ -229,9 +229,9 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
                       </div>
                       {exp.description && <p className="text-gray-600 mt-1" style={{ fontSize: fonts.small }}>{exp.description}</p>}
                       {exp.achievements.length > 0 && (
-                        <ul style={{ paddingLeft: '1rem', marginTop: '0.5rem' }}>
+                        <ul className="list-disc" style={{ paddingLeft: '1.25rem', marginTop: '0.5rem' }}>
                           {exp.achievements.map((achievement, i) => (
-                            <li key={i} style={{ fontSize: fonts.small, marginBottom: '0.25rem', color: '#222' }}>
+                            <li key={i} style={{ fontSize: fonts.small, marginBottom: '0.25rem', color: '#374151' }}>
                               {achievement}
                             </li>
                           ))}
@@ -246,15 +246,15 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
             {/* Education */}
             {education.length > 0 && (
               <div className="mb-6">
-                <h3 
-                  className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
-                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: hexToRgba(settings.primaryColor, 0.2) }}
+                <h3
+                  className="font-semibold uppercase mb-2.5 pb-1.5"
+                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderBottom: `2px solid ${hexToRgba(settings.primaryColor, 0.2)}` }}
                 >
                   Education
                 </h3>
-                <div className="space-y-3">
+                <div>
                   {education.map((edu) => (
-                    <div key={edu.id}>
+                    <div key={edu.id} style={{ marginBottom: '12px' }}>
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-semibold text-gray-900">{edu.degree} in {edu.field}</h4>
@@ -276,15 +276,15 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
             {/* Projects */}
             {projects.length > 0 && (
               <div>
-                <h3 
-                  className="font-semibold uppercase tracking-wider mb-2.5 pb-1.5 border-b-2"
-                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderColor: hexToRgba(settings.primaryColor, 0.2) }}
+                <h3
+                  className="font-semibold uppercase mb-2.5 pb-1.5"
+                  style={{ fontSize: fonts.section, color: settings.primaryColor, borderBottom: `2px solid ${hexToRgba(settings.primaryColor, 0.2)}` }}
                 >
                   Projects
                 </h3>
-                <div className="space-y-3">
+                <div>
                   {projects.map((project) => (
-                    <div key={project.id}>
+                    <div key={project.id} className="print-break-inside-avoid" style={{ marginBottom: '12px' }}>
                       <div className="flex justify-between items-start">
                         <h4 className="font-semibold text-gray-900">
                           {project.url ? (
@@ -297,9 +297,9 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, settings }) =>
                       </div>
                       <p className="text-gray-600 mt-0.5" style={{ fontSize: fonts.small, color: '#333' }}>{project.description}</p>
                       {project.technologies.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-1.5">
+                        <div className="flex flex-wrap" style={{ marginTop: '6px' }}>
                           {project.technologies.map((tech, i) => (
-                            <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded" style={{ fontSize: '10px' }}>{tech}</span>
+                            <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded" style={{ fontSize: '10px', marginRight: '6px', marginBottom: '6px' }}>{tech}</span>
                           ))}
                         </div>
                       )}

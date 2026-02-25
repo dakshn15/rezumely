@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  FileText, Palette, Download, Sparkles, ArrowRight, CheckCircle, 
+import { Helmet } from 'react-helmet-async';
+import {
+  FileText, Palette, Download, Sparkles, ArrowRight, CheckCircle,
   Mail, Phone, MapPin, Send, Star, Zap, Shield, Clock,
   Linkedin, Twitter, Github, Menu, X, ChevronLeft, ChevronRight
 } from 'lucide-react';
@@ -14,9 +15,11 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { Pagination } from 'swiper/modules';
+import { useAuthStore } from '@/store/authStore';
 
 const Index = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const features = [
     { icon: Zap, title: 'Lightning Fast', description: 'Build your resume in minutes with our intuitive editor' },
     { icon: Shield, title: 'ATS-Optimized', description: 'Templates designed to pass applicant tracking systems' },
@@ -65,44 +68,44 @@ const Index = () => {
   ];
 
   const testimonials = [
-    { 
-      name: 'Sarah Johnson', 
-      role: 'Software Engineer at Google', 
+    {
+      name: 'Sarah Johnson',
+      role: 'Software Engineer at Google',
       text: 'Got 3 interview calls within a week of using my new resume! The ATS optimization really works.',
       avatar: 'SJ',
       rating: 5
     },
-    { 
-      name: 'Michael Chen', 
-      role: 'Product Manager at Microsoft', 
+    {
+      name: 'Michael Chen',
+      role: 'Product Manager at Microsoft',
       text: 'The templates are incredibly professional and the editor is so intuitive. Landed my dream job!',
       avatar: 'MC',
       rating: 5
     },
-    { 
-      name: 'Emily Davis', 
-      role: 'Marketing Director at Spotify', 
+    {
+      name: 'Emily Davis',
+      role: 'Marketing Director at Spotify',
       text: 'Beautiful templates that actually get results. The real-time preview saved me hours of formatting.',
       avatar: 'ED',
       rating: 5
     },
-    { 
-      name: 'David Rodriguez', 
-      role: 'UX Designer at Adobe', 
+    {
+      name: 'David Rodriguez',
+      role: 'UX Designer at Adobe',
       text: 'Finally, a resume builder that understands design. The creative template helped me stand out.',
       avatar: 'DR',
       rating: 5
     },
-    { 
-      name: 'Lisa Wang', 
-      role: 'Data Scientist at Netflix', 
+    {
+      name: 'Lisa Wang',
+      role: 'Data Scientist at Netflix',
       text: 'Clean, professional, and ATS-friendly. Got past the initial screening at 5 different companies.',
       avatar: 'LW',
       rating: 5
     },
-    { 
-      name: 'James Thompson', 
-      role: 'Marketing Manager at Tesla', 
+    {
+      name: 'James Thompson',
+      role: 'Marketing Manager at Tesla',
       text: 'The auto-save feature is a lifesaver. Built my entire resume during my lunch breaks.',
       avatar: 'JT',
       rating: 5
@@ -111,6 +114,15 @@ const Index = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Free Resume Builder & CV Maker | Professional Templates | Rezumely</title>
+        <meta name="description" content="Create your professional ATS-friendly resume in minutes. Use our free resume maker and premium resume templates to land your dream job faster." />
+        <meta name="keywords" content="resume maker, resume builder, resume maker free, resume templates, free ATS resume builder, professional cv builder, CV maker online, resume creator" />
+        <meta property="og:title" content="Free Resume Builder & CV Maker | Rezumely" />
+        <meta property="og:description" content="Create your professional ATS-friendly resume in minutes and land your dream job faster. Try our simple resume maker for free." />
+        <meta property="og:type" content="website" />
+      </Helmet>
+
       {/* Header */}
       <header className="sticky top-0 left-0 right-0 z-50 glass border-b shadow-md">
         <div className="container mx-auto md:py-4 py-3 flex items-center justify-between">
@@ -130,11 +142,24 @@ const Index = () => {
           </nav>
 
           <div className="flex items-center gap-4">
-            <Link to="/editor" className="hidden sm:block">
-              <CustomButton variant="primary" size="sm">
-                Get Started <ArrowRight />
-              </CustomButton>
-            </Link>
+            {isAuthenticated() ? (
+              <Link to="/editor" className="hidden sm:block">
+                <CustomButton variant="primary" size="sm">
+                  Dashboard <ArrowRight />
+                </CustomButton>
+              </Link>
+            ) : (
+              <div className="hidden sm:flex items-center gap-4">
+                <Link to="/login" className="text-sm font-medium hover:text-primary transition-colors">
+                  Login
+                </Link>
+                <Link to="/register">
+                  <CustomButton variant="primary" size="sm">
+                    Get Started <ArrowRight />
+                  </CustomButton>
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Menu Button */}
             <button
@@ -1035,10 +1060,10 @@ const Index = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="grid md:grid-cols-4 sm:grid-cols-2 gap-8 lg:mb-12 sm:mb-6 mb-5"
+            className="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-2 gap-8 lg:mb-12 sm:mb-6 mb-5"
           >
             {/* Enhanced Brand Section */}
-            <div className="sm:col-span-2 md:text-start text-center">
+            <div className="lg:col-span-2 sm:col-span-2 md:text-start text-center">
               <div
                 className="flex items-center md:justify-start justify-center gap-3 lg:mb-6 mb-5"
               >
@@ -1048,7 +1073,7 @@ const Index = () => {
                 <span className="font-black lg:text-3xl text-2xl text-white">Rezumely</span>
               </div>
               <p className="text-white/80 max-w-md md:mx-0 mx-auto lg:mb-8 mb-5 lg:text-lg">
-                Transform your career with professional, ATS-optimized resumes. Join <span className="font-semibold text-white">50,000+</span> professionals who've landed their dream jobs.
+                Transform your career with professional, ATS-optimized resumes. Join <span className="font-semibold text-white">50,000+</span> professionals who've landed their dream jobs using our free resume builder.
               </p>
               <div className="flex md:justify-start justify-center gap-3">
                 {[
@@ -1077,8 +1102,9 @@ const Index = () => {
               <h4 className="font-bold text-white mb-6 text-lg">Quick Links</h4>
               <div className="space-y-4">
                 {[
-                  { to: "/editor", label: "Resume Editor" },
-                  { href: "#templates", label: "Templates" },
+                  { to: "/editor", label: "Resume Builder" },
+                  { href: "#templates", label: "Templates Overview" },
+                  { to: "/blog", label: "Career Blog" },
                   { href: "#features", label: "Features" },
                   { href: "#testimonials", label: "Success Stories" }
                 ].map(({ to, href, label }) => (
@@ -1097,27 +1123,60 @@ const Index = () => {
               </div>
             </motion.div>
 
-            {/* Support */}
+            {/* Popular Templates */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3, duration: 0.6 }}
             >
-              <h4 className="font-bold text-white mb-6 text-lg">Support</h4>
+              <h4 className="font-bold text-white mb-6 text-lg">Top Templates</h4>
               <div className="space-y-4">
                 {[
-                  { href: "#contact", label: "Contact Us" },
-                  { href: "#", label: "Help Center" },
-                  { href: "#", label: "Privacy Policy" },
-                  { href: "#", label: "Terms of Service" }
-                ].map(({ href, label }) => (
+                  { to: "/resume-templates/software-engineer", label: "Software Engineer" },
+                  { to: "/resume-templates/data-scientist", label: "Data Scientist" },
+                  { to: "/resume-templates/product-manager", label: "Product Manager" },
+                  { to: "/resume-templates/marketing-manager", label: "Marketing Manager" },
+                  { to: "/resume-templates/designer", label: "UX/UI Designer" }
+                ].map(({ to, label }) => (
                   <motion.div key={label}>
-                    <a href={href} className="inline-block w-fit text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300">
+                    <Link to={to} className="inline-block w-fit text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300">
                       {label}
-                    </a>
+                    </Link>
                   </motion.div>
                 ))}
+              </div>
+            </motion.div>
+
+            {/* Support */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
+              <h4 className="font-bold text-white mb-6 text-lg">Support</h4>
+              <div className="space-y-4">
+                <motion.div>
+                  <a href="#contact" className="inline-block w-fit text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300">
+                    Contact Us
+                  </a>
+                </motion.div>
+                <motion.div>
+                  <a href="#" className="inline-block w-fit text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300">
+                    Help Center
+                  </a>
+                </motion.div>
+                <motion.div>
+                  <Link to="/privacy-policy" className="inline-block w-fit text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300">
+                    Privacy Policy
+                  </Link>
+                </motion.div>
+                <motion.div>
+                  <Link to="/terms-of-service" className="inline-block w-fit text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300">
+                    Terms of Service
+                  </Link>
+                </motion.div>
               </div>
             </motion.div>
           </motion.div>

@@ -355,6 +355,16 @@
     size: A4;
     margin: 0;
   }
+
+  .print-break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-break-before-auto {
+    break-before: auto;
+    page-break-before: auto;
+  }
 }
 
 /* Background patterns */

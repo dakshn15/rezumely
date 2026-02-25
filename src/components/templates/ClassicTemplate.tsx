@@ -28,7 +28,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, settings }) =
     >
       {/* Header */}
       <div className="text-center border-b-2 border-black pb-4 mb-4">
-        <h1 className="text-2xl font-bold tracking-wide mb-1" style={{ color: merged.primaryColor }}>{personalInfo.name || 'Your Name'}</h1>
+        <h1 className="text-2xl font-bold  mb-1" style={{ color: merged.primaryColor }}>{personalInfo.name || 'Your Name'}</h1>
         {personalInfo.title && (
           <h2 className="text-sm italic mb-2" style={{ color: '#4b5563' }}>{personalInfo.title}</h2>
         )}
@@ -43,7 +43,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, settings }) =
       {/* Summary */}
       {summary && (
         <div className="mb-4">
-          <h3 className="text-sm font-bold uppercase tracking-widest mb-2 border-b border-gray-300 pb-1" style={{ color: merged.primaryColor, fontSize: fonts.heading }}>
+          <h3 className="text-sm font-bold uppercase  mb-2 border-b border-gray-300 pb-1" style={{ color: merged.primaryColor, fontSize: fonts.heading }}>
             Professional Summary
           </h3>
           <p className="text-gray-700">{summary}</p>
@@ -53,12 +53,12 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, settings }) =
       {/* Experience */}
       {experience.length > 0 && (
         <div className="mb-4">
-          <h3 className="text-sm font-bold text-black uppercase tracking-widest mb-2 border-b border-gray-300 pb-1">
+          <h3 className="text-sm font-bold text-black uppercase  mb-2 border-b border-gray-300 pb-1">
             Professional Experience
           </h3>
           <div className="space-y-4">
             {experience.map((exp) => (
-              <div key={exp.id}>
+              <div key={exp.id} className="print-break-inside-avoid">
                 <div className="flex justify-between items-baseline gap-2 flex-wrap">
                   <h4 className="font-bold text-black">{exp.position}</h4>
                   <span className="text-[10px] text-gray-600 italic">
@@ -83,12 +83,12 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, settings }) =
       {/* Education */}
       {education.length > 0 && (
         <div className="mb-4">
-          <h3 className="text-sm font-bold text-black uppercase tracking-widest mb-2 border-b border-gray-300 pb-1">
+          <h3 className="text-sm font-bold text-black uppercase  mb-2 border-b border-gray-300 pb-1">
             Education
           </h3>
           <div className="space-y-3">
             {education.map((edu) => (
-              <div key={edu.id}>
+              <div key={edu.id} className="print-break-inside-avoid">
                 <div className="flex justify-between items-baseline gap-2 flex-wrap">
                   <h4 className="font-bold text-black">{edu.degree} in {edu.field}</h4>
                   <span className="text-[10px] text-gray-600 italic">
@@ -113,7 +113,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, settings }) =
       {/* Skills */}
       {(skills.technical.length > 0 || skills.languages.length > 0 || skills.softSkills.length > 0) && (
         <div className="mb-4">
-          <h3 className="text-sm font-bold text-black uppercase tracking-widest mb-2 border-b border-gray-300 pb-1">
+          <h3 className="text-sm font-bold text-black uppercase  mb-2 border-b border-gray-300 pb-1">
             Skills
           </h3>
           <div className="space-y-1.5 text-gray-700">
@@ -139,12 +139,12 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, settings }) =
       {/* Projects */}
       {projects.length > 0 && (
         <div className="mb-4">
-          <h3 className="text-sm font-bold text-black uppercase tracking-widest mb-2 border-b border-gray-300 pb-1">
+          <h3 className="text-sm font-bold text-black uppercase  mb-2 border-b border-gray-300 pb-1">
             Projects
           </h3>
           <div className="space-y-2">
             {projects.map((project) => (
-              <div key={project.id}>
+              <div key={project.id} className="print-break-inside-avoid">
                 <h4 className="font-bold text-black">
                   {project.name}
                   {project.url && <span className="font-normal text-[10px] text-gray-600 ml-2">({project.url})</span>}
@@ -164,7 +164,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, settings }) =
       {/* Certifications */}
       {additional.certifications.length > 0 && (
         <div>
-          <h3 className="text-sm font-bold text-black uppercase tracking-widest mb-2 border-b border-gray-300 pb-1">
+          <h3 className="text-sm font-bold text-black uppercase  mb-2 border-b border-gray-300 pb-1">
             Certifications
           </h3>
           <div className="flex flex-wrap gap-x-4 gap-y-1">

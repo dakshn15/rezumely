@@ -37,7 +37,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   };
 
   return (
-    <div className={cn('relative inline-flex items-center justify-center', className)}>
+    <div className={cn('relative inline-flex items-center', className)}>
       <svg
         className="progress-ring"
         width={size}
@@ -68,7 +68,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
         />
       </svg>
       {showLabel && (
-        <span className="absolute text-xs font-semibold text-foreground">
+        <span className="absolute text-xs font-semibold text-foreground start-1/2 -translate-x-1/2">
           {Math.round(progress)}%
         </span>
       )}
