@@ -14,7 +14,10 @@ export const generatePDF = async (resumeId: string, token: string): Promise<Buff
         // Easier: The frontend route /preview/:id should ideally be public OR we inject the token.
         // Let's inject the token into localStorage before navigation completes mostly.
 
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const frontendUrl = process.env.FRONTEND_URL;
+        if (!frontendUrl) {
+            throw new Error('FRONTEND_URL environment variable is required for PDF generation');
+        }
         const targetUrl = `${frontendUrl}/preview/${resumeId}`;
 
         // Set viewport to A4 dimensions (approx)
