@@ -23,7 +23,7 @@ export const PublicResume = () => {
                 // Or better, use fetch directly to avoid auth headers being an issue if they are invalid.
 
                 // Construct URL. If using vite proxy, /api/public/...
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/public/${idOrSlug}`);
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/public/${idOrSlug}`);
 
                 if (!response.ok) {
                     throw new Error('Resume not found or private');
