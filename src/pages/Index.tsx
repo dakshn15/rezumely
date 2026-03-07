@@ -694,42 +694,61 @@ const Index = () => {
       </section>
 
       {/* AI Features Highlight */}
-      <section className="py-20 bg-primary/5 border-y border-primary/10">
+      <section className="lg:py-16 py-10 bg-primary/5 border-y border-primary/10">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Supercharged with <span className="text-primary">AI</span></h2>
-            <p className="text-muted-foreground text-lg">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center lg:mb-12 mb-8"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="inline-flex leading-none items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 md:mb-5 mb-4"
+            >
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Smart Assistant</span>
+            </motion.div>
+
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-4">
+              Supercharged with <span className="text-primary">AI</span>
+            </h2>
+            <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto">
               Let our advanced AI assistant help you land your dream job faster.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-background p-8 rounded-2xl shadow-sm border hover:border-primary/50 transition-colors">
-              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-6">
+          <div className="grid md:grid-cols-3 lg:gap-8 sm:gap-5 gap-4">
+            <div className="bg-background xl:p-8 lg:p-6 p-4 rounded-2xl shadow-sm border hover:border-primary/50 transition-colors">
+              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5 sm:mb-6">
                 <FileText className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Smart Summary Generation</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3">Smart Summary Generation</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Struggling to write your professional profile? Our AI analyzes your experience and automatically generates a compelling, ATS-friendly summary tailored to your target role.
               </p>
             </div>
 
-            <div className="bg-background p-8 rounded-2xl shadow-sm border hover:border-primary/50 transition-colors">
-              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-background xl:p-8 lg:p-6 p-4 rounded-2xl shadow-sm border hover:border-primary/50 transition-colors">
+              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5 sm:mb-6">
                 <CheckCircle className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Job Match Scoring</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3">Job Match Scoring</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Paste a job description and our AI will immediately score your resume's match percentage. Identify missing keywords and fix skill gaps before you click submit.
               </p>
             </div>
 
-            <div className="bg-background p-8 rounded-2xl shadow-sm border hover:border-primary/50 transition-colors">
-              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-background xl:p-8 lg:p-6 p-4 rounded-2xl shadow-sm border hover:border-primary/50 transition-colors">
+              <div className="bg-primary/10 w-12 h-12 rounded-xl flex items-center justify-center mb-5 sm:mb-6">
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Bullet Point Optimization</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3">Bullet Point Optimization</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Transform weak bullet points into powerful, action-driven achievements. Our AI suggests improvements that quantify your impact and impress hiring managers.
               </p>
             </div>
